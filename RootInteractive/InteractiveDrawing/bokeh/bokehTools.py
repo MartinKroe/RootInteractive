@@ -1,6 +1,5 @@
 from bokeh.plotting import figure, show, output_file
 from bokeh.models import ColumnDataSource, ColorBar, HoverTool
-# from bokeh.palettes import *
 from bokeh.transform import *
 #from bokehTools import *
 from bokeh.layouts import *
@@ -8,6 +7,7 @@ from bokeh.palettes import *
 from bokeh.io import push_notebook
 # import copy
 import pyparsing
+from IPython import get_ipython
 
 # tuple of Bokeh markers
 bokehMarkers = ["square", "circle", "triangle", "diamond", "squarecross", "circlecross", "diamondcross", "cross", "dash", "hex", "invertedtriangle",  "asterisk", "squareX","X"]
@@ -153,7 +153,7 @@ def drawColzArray(dataFrame, query, varX, varY, varColor, p, **options):
     dfQuery = dataFrame.query(query)
     source = ColumnDataSource(dfQuery)
     mapper = linear_cmap(field_name=varColor, palette=Spectral6, low=min(dfQuery[varColor]), high=max(dfQuery[varColor]))
-
+    isNotebook=get_ipython().__class__.__name__=='ZMQInteractiveShell'
     varYArray = varY.split(":")
     varXArray = varX.split(":")
     plotArray = []
@@ -225,8 +225,8 @@ def drawColzArray(dataFrame, query, varX, varY, varColor, p, **options):
     if 'layout' in options.keys():  # make figure according layout
         x, layoutList, optionsLayout = processBokehLayout(options["layout"], plotArray)
         pAll = gridplot(layoutList, **optionsLayout)
-        handle = show(pAll, notebook_handle=True)
-        return pAll, handle, source
+        handle = show(pAll, notebook_handle=isNotebook)
+        return pAll, handle, source, plotArray
 
     nCols = 1
     if 'ncols' in options.keys():
@@ -239,6 +239,6 @@ def drawColzArray(dataFrame, query, varX, varY, varColor, p, **options):
         if pCol == 0: plotArray2D.append([])
         plotArray2D[int(pRow)].append(plot)
     pAll = gridplot(plotArray2D)
-    #    print(plotArray2D)
-    handle = show(pAll, notebook_handle=True)  # TODO make it OPTIONAL
-    return pAll, handle, source
+    #    https://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
+    handle = show(pAll, notebook_handle=isNotebook)  # TODO make it OPTIONAL
+    return pAll, handle, source, plotArray
